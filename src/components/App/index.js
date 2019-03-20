@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import CheckBox2 from "../CheckBox2";
 
 class App extends Component {
   constructor(props) {
@@ -39,14 +38,6 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          {this.state.data.map((item, idx) => (
-            <CheckBox2
-              key={idx}
-              value={item.value}
-              {...item.checked}
-              handleClick={() => this.handleClick(idx)}
-            />
-          ))}
         </header>
       </div>
     );
