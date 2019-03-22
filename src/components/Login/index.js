@@ -1,4 +1,7 @@
 import React, { Component } from "react";
+import LoadingAnimation from "../LoadingAnimation";
+
+const API_URL = "http://localhost:5000";
 
 class Authed extends Component {
   constructor(props) {
@@ -7,7 +10,8 @@ class Authed extends Component {
       isLoggedIn: Boolean(localStorage.getItem("Token")),
       email: "",
       password: "",
-      secret: ""
+      secret: "",
+      isLoading: false
     };
   }
 
@@ -18,9 +22,19 @@ class Authed extends Component {
     }));
   };
 
-  login = event => {
-    event.preventDefault();
-    fetch("/login", {
+  loadFunc = loadFunction => {
+    this.setState({ isLoading: true });
+    try {
+      loadFunction();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTimeout(() => this.setState({ isLoading: false }), 1000);
+    }
+  };
+
+  login = () => {
+    fetch(`${API_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +64,7 @@ class Authed extends Component {
 
   showSecret = async () => {
     const token = localStorage.getItem("Token");
-    const response = await fetch(`/private?token=${token}`);
+    const response = await fetch(`${API_URL}/private?token=${token}`);
     const data = await response.json();
     this.setState(() => ({
       secret: data.message
@@ -60,18 +74,24 @@ class Authed extends Component {
   render() {
     return (
       <div>
-        {this.state.isLoggedIn
-          ? "Welcome Home"
-          : "You are not allowed to be here"}
         {this.state.isLoggedIn ? (
+          <h2>Welcome Home</h2>
+        ) : (
+          <h2>You are not allowed to be here</h2>
+        )}
+        {this.state.isLoading ? (
+          <LoadingAnimation />
+        ) : this.state.isLoggedIn ? (
           <div>
             {this.state.secret || (
-              <button onClick={this.showSecret}>Show Secret</button>
+              <button onClick={() => this.loadFunc(this.showSecret)}>
+                Show Secret
+              </button>
             )}
             <button onClick={this.logout}>Logout</button>
           </div>
         ) : (
-          <form onSubmit={this.login}>
+          <div>
             <input
               onChange={this.onChange}
               value={this.state.email}
@@ -82,12 +102,12 @@ class Authed extends Component {
             <input
               onChange={this.onChange}
               value={this.state.password}
+              type="password"
               name="password"
-              // type="password"
               placeholder="password"
             />
-            <button type="submit">login</button>
-          </form>
+            <button onClick={() => this.loadFunc(this.login)}>login</button>
+          </div>
         )}
       </div>
     );
